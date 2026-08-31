@@ -1,13 +1,18 @@
-FROM python:3.11-slim
+# initialize the image with node 22
+FROM node:22
 
+# initiate the app in the root directory
 WORKDIR /app
 
-COPY backend/requirements.txt ./backend/
-RUN pip install -r backend/requirements.txt
+# copy package.json and package-lock.json
+COPY package*.json ./
 
-COPY backend/ ./backend/
-COPY migrations/ ./migrations/
+# run `npm install`
+RUN npm install
 
-ENV PYTHONPATH=/app
+COPY . .
 
-CMD FLASK_APP=backend.app flask db upgrade && gunicorn backend.app:app --bind 0.0.0.0:${PORT:-5001}
+# Run the app after docker image is built
+RUN npm run build
+EXPOSE 3000
+CMD ["npx", "serve", "-s", "build", "-l", "3000"]
